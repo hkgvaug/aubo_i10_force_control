@@ -1,0 +1,24 @@
+<launch>
+  <!-- 
+    BIM/LLM Target Bridge + 6-DoF Cartesian Admittance Streaming Servo
+    Combines high-level LLM task decomposition with low-latency Cartesian force control.
+  -->
+  <arg name="robot_ip" default="192.168.100.11"/>
+  <arg name="mock_hardware" default="false"/>
+  <arg name="config_file" default="$(find bim_aubo_adapter)/config/cartesian_force_servo.yaml"/>
+
+  <!-- Load BIM to Robot coordinate mapping parameters -->
+  <rosparam command="load" file="$(find bim_aubo_adapter)/config/bim_aubo.yaml"/>
+
+  <!-- 1. BIM/LLM Target Bridge: /bim/components -> /bim/target_pose -->
+  <node name="bim_target_bridge" pkg="bim_aubo_adapter" 
+        type="bim_target_bridge.py" output="screen" respawn="false"/>
+
+  <!-- 2. High-speed 6-DoF Cartesian Admittance & CAN Stream Servo Node -->
+  <node name="aubo_cartesian_force_servo_node" pkg="bim_aubo_adapter" 
+        type="aubo_cartesian_force_servo_node.py" output="screen" respawn="false">
+    <rosparam command="load" file="$(arg config_file)"/>
+    <param name="robot_ip" value="$(arg robot_ip)"/>
+    <param name="mock_hardware" value="$(arg mock_hardware)"/>
+  </node>
+</launch>

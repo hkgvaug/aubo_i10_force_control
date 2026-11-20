@@ -1,0 +1,14 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="robot_ip" default="192.168.100.11"/>
+  <arg name="mock_hardware" default="false"/>
+  <arg name="config_file" default="$(find bim_aubo_adapter)/config/cartesian_force_servo.yaml"/>
+
+  <!-- Aubo 6-DoF Cartesian Force/Admittance Streaming Servo Node -->
+  <node name="aubo_cartesian_force_servo_node" pkg="bim_aubo_adapter" 
+        type="aubo_cartesian_force_servo_node.py" output="screen" respawn="false">
+    <rosparam command="load" file="$(arg config_file)"/>
+    <param name="robot_ip" value="$(arg robot_ip)"/>
+    <param name="mock_hardware" value="$(arg mock_hardware)"/>
+  </node>
+</launch>

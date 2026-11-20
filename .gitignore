@@ -1,0 +1,21 @@
+# catkin build outputs
+build/
+devel/
+install/
+logs/
+.catkin_tools/
+.catkin_workspace.user
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# ros runtime
+*.bag
+.ros/
+
+# editors / os
+.vscode/
+*.swp
+.DS_Store

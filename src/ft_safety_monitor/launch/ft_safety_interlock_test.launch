@@ -1,0 +1,16 @@
+<launch>
+  <!-- Fake-execution test for the fail-closed safety interlock in
+       moveit_pose_executor.  No aubo_driver, no real robot, no Gazebo. -->
+
+  <include file="$(find ft_safety_monitor)/launch/ft_safety_test.launch"/>
+
+  <!-- Load the adapter parameters globally; the node reads its private
+       namespace (/moveit_pose_executor/...). -->
+  <rosparam command="load" file="$(find bim_aubo_adapter)/config/bim_aubo.yaml"/>
+
+  <node name="moveit_pose_executor" pkg="bim_aubo_adapter"
+        type="moveit_pose_executor.py" output="screen">
+    <param name="require_safety_state" value="true"/>
+    <param name="safety_state_timeout" value="1.0"/>
+  </node>
+</launch>

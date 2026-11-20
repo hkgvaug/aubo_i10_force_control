@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!--
+  KWR75 six-axis force/torque sensor, ROS 1 (Noetic) kinematics.
+
+  Usage inside your xacro:
+    <xacro:include filename="$(find kwr75_ft_sensor)/urdf/kwr75_ft_sensor.urdf.xacro"/>
+    <xacro:kwr75_ft_sensor parent="wrist3_Link" xyz="0 0 0" rpy="0 0 0"/>
+
+  Frame layout:
+    ${parent}                       robot flange (e.g. wrist3_Link)
+      └─ <link_name>_base           sensor mounting side (fixed)
+          └─ <link_name>            tool side / measurement frame
+
+  <link_name> is the frame used by the driver's ~frame_id (default
+  ft_sensor_link). The tool must be attached to <link_name>, not to the
+  robot flange.
+
+  Defaults are the datasheet values for KWR75B (except the mesh):
+    height  0.0315 m   mounting face to tool face
+    radius  0.0375 m   body radius
+    mass    0.28 kg
+    com_z   -1         negative = height/2
+
+  If an adapter plate is fitted, measure the real mounting-face-to-tool-face
+  distance and set height/mass/com_z explicitly.  Do not guess.
+
+  The optional DAE visual is the CAD model supplied with the ROS 2 package.
+  Its mesh is 37.5 mm tall (it appears to include the adapter/cable), so it
+  does NOT match the 31.5 mm datasheet body.  It is therefore disabled by
+  default; enable use_mesh_visual:=true only for visualization, and keep the
+  cylinder collision for planning.
+
+  Axis convention (manual Fig. 3): Fx right, Fy up, Fz along the sensor
+  axis, torques follow the right-hand rule.  The origin is on the tool-side
+  face.  Verify the sign with a known load after mounting.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="kwr75_ft_sensor"
+               params="parent
+                       link_name:=ft_sensor_link
+                       xyz:='0 0 0'
+                       rpy:='0 0 0'
+                       height:=0.0315
+                       radius:=0.0375
+                       mass:=0.28
+                       com_z:=-1
+                       use_mesh_visual:=false
+                       mesh_scale:=0.001
+                       visual_xyz:='0 0 0.013'
+                       visual_rpy:='-1.57079632679 0 0'">
+    <xacro:property name="com_z_used" value="${height / 2.0 if com_z &lt; 0.0 else com_z}"/>
+    <xacro:property name="ixx" value="${mass * (3.0 * radius * radius + height * height) / 12.0}"/>
+    <xacro:property name="izz" value="${mass * radius * radius / 2.0}"/>
+
+    <link name="${link_name}_base">
+      <inertial>
+        <origin xyz="0 0 ${com_z_used}" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia ixx="${ixx}" iyy="${ixx}" izz="${izz}"
+                 ixy="0.0" iyz="0.0" ixz="0.0"/>
+      </inertial>
+
+      <xacro:if value="${use_mesh_visual}">
+        <visual>
+          <origin xyz="${visual_xyz}" rpy="${visual_rpy}"/>
+          <geometry>
+            <mesh filename="package://kwr75_ft_sensor/meshes/kwr75.dae"
+                  scale="${mesh_scale} ${mesh_scale} ${mesh_scale}"/>
+          </geometry>
+        </visual>
+      </xacro:if>
+      <xacro:unless value="${use_mesh_visual}">
+        <visual>
+          <origin xyz="0 0 ${height / 2.0}" rpy="0 0 0"/>
+          <geometry>
+            <cylinder radius="${radius}" length="${height}"/>
+          </geometry>
+        </visual>
+      </xacro:unless>
+
+      <!-- Conservative cylinder collision.  The supplied STL is ~95 mm in
+           diameter, which is larger than the datasheet body. -->
+      <collision>
+        <origin xyz="0 0 ${height / 2.0}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius}" length="${height}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name="${link_name}"/>
+
+    <joint name="${link_name}_joint" type="fixed">
+      <parent link="${link_name}_base"/>
+      <child link="${link_name}"/>
+      <origin xyz="0 0 ${height}" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="${link_name}_base_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${link_name}_base"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+  </xacro:macro>
+</robot>

@@ -1,0 +1,17 @@
+enterTcp2CanbusMode=0
+
+hold q(deg) = 147.94 71.44 142.91 168.70 111.83 34.37
+
+[E] hold, free-running                 n=200 p50= 152.58 p90= 393.43 max=1500.54 mean= 206.58 ms
+    -> achieved interval               n=200 p50= 152.58 p90= 393.43 max=1500.54 mean= 206.58 ms
+[F] hold, paced 20 Hz (50ms)           n= 60 p50= 182.61 p90= 424.94 max= 718.52 mean= 208.15 ms
+    -> achieved interval               n= 60 p50= 232.67 p90= 475.01 max= 768.66 mean= 257.39 ms
+[G] hold, paced 100 Hz (10ms)          n=200 p50= 165.47 p90= 384.46 max=1384.46 mean= 228.92 ms
+    -> achieved interval               n=200 p50= 175.54 p90= 394.52 max=1394.54 mean= 238.94 ms
+[H] MOVING +-0.5deg wrist3, paced 100 Hz n=200 p50= 166.82 p90= 377.61 max=1193.13 mean= 230.20 ms
+    -> achieved interval               n=200 p50= 176.88 p90= 387.67 max=1203.19 mean= 240.22 ms
+
+final wrist3 = 34.373 deg (start 34.373)
+done
+*** stack smashing detected ***: terminated
+timeout: the monitored command dumped core

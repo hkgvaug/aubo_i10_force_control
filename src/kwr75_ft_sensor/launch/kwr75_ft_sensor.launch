@@ -1,0 +1,14 @@
+<launch>
+  <arg name="port" default="/dev/robot/kwr75_force_sensor"
+       doc="Serial device; /dev/ttyUSB0 also works"/>
+  <arg name="frame_id" default="ft_sensor_link"
+       doc="Must match the sensor link in the robot URDF"/>
+
+  <node pkg="kwr75_ft_sensor" type="kwr75_ft_sensor_node.py"
+        name="kwr75_ft_sensor" output="screen">
+    <rosparam command="load"
+              file="$(find kwr75_ft_sensor)/config/kwr75_ft_sensor.yaml"/>
+    <param name="port" value="$(arg port)"/>
+    <param name="frame_id" value="$(arg frame_id)"/>
+  </node>
+</launch>

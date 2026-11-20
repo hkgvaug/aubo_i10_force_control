@@ -1,0 +1,33 @@
+# KWR75-RS422 driver parameters.
+# Loaded by launch/kwr75_ft_sensor.launch into the node's private namespace.
+
+port: /dev/robot/kwr75_force_sensor
+baudrate: 460800
+publish_rate: 250.0            # Hz; reading stays at 1 kHz
+frame_id: ft_sensor_link       # must match the URDF sensor link
+
+# Raw (no tare) output for overload/safety supervision.  The value is
+# low-pass filtered but still contains tool weight and fixture preload.
+raw_topic: /ft_sensor/wrench_raw
+publish_raw: true
+
+serial_timeout: 0.05
+stale_timeout: 0.5             # stop publishing if no valid frame for this long
+
+# KWR75B rated load (see manual page 6). Change for your model:
+#   A: 50 N / 2 Nm    B: 200 N / 8 Nm   C: 350 N / 12 Nm
+#   D: 500 N / 18 Nm  E: 30 N / 1.5 Nm  F: 100 N / 4 Nm
+rated_force_n: 200.0
+rated_torque_nm: 8.0
+warn_ratio: 0.8                # warn at 80% of rated load
+warn_period: 1.0               # seconds between repeated warnings
+
+# First-order low-pass on the published values. 0 disables filtering.
+# tau=0.01 s is roughly a 16 Hz cutoff.
+lowpass_tau: 0.01
+
+# Tare (software zero): average the most recent samples.
+tare_frames: 200               # 200 frames = 0.2 s at 1 kHz
+tare_min_samples: 20
+tare_max_std_force: 2.0        # N; refuse tare if samples are unstable
+tare_max_std_torque: 0.2       # Nm

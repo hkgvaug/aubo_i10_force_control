@@ -1,0 +1,52 @@
+<launch>
+  <!-- Gazebo-only test for the KWR75 FT plugin and the safety monitor.
+       No AUBO driver, no real robot.  The sensor is fixed to the world and
+       a 1 kg test tool hangs from it.
+
+       Check the stream:
+         rostopic hz /ft_sensor/wrench_raw
+         rostopic echo -n1 /ft_sensor/wrench_raw
+
+       The fixed test_tool joint is lumped into ft_sensor_link by Gazebo,
+       so the body name is ft_sensor_link (check /gazebo/link_states).
+
+       Apply a load (simulation only):
+         rosservice call /gazebo/apply_body_wrench \
+           "{body_name: 'kwr75_gazebo_test::ft_sensor_link', \
+             reference_frame: 'world', \
+             wrench: {force: {x: 0, y: 0, z: -160}, torque: {x: 0, y: 0, z: 0}},
+             start_time: {secs: 0, nsecs: 0}, duration: {secs: 5, nsecs: 0}}"
+
+       Clear it:
+         rosservice call /gazebo/clear_body_wrenches \
+           "{body_name: 'kwr75_gazebo_test::ft_sensor_link'}"
+  -->
+
+  <arg name="gui" default="false"/>
+  <arg name="paused" default="false"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="true"/>
+  </include>
+
+  <param name="robot_description"
+         command="$(find xacro)/xacro '$(find kwr75_ft_sensor)/urdf/kwr75_ft_sensor_gazebo_test.urdf.xacro'"/>
+
+  <node name="spawn_kwr75_test" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -model kwr75_gazebo_test -param robot_description -x 0 -y 0 -z 0"
+        output="screen"/>
+
+  <!-- The monitor uses wall-clock time for its watchdog and does not send
+       driver/MoveIt stop commands in this standalone test. -->
+  <include file="$(find ft_safety_monitor)/launch/ft_safety_monitor.launch">
+    <arg name="wrench_topic" value="/ft_sensor/wrench_raw"/>
+    <arg name="startup_grace_period" value="8.0"/>
+    <arg name="watchdog_timeout" value="1.0"/>
+    <arg name="use_driver_stop" value="false"/>
+    <arg name="use_cancel_trajectory" value="false"/>
+    <arg name="use_move_group_stop" value="false"/>
+    <arg name="use_action_cancel" value="false"/>
+  </include>
+</launch>

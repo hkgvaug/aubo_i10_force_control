@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+  Gazebo force/torque sensor plugin for the KWR75.
+
+  Usage (inside a Gazebo-only xacro/model):
+    <xacro:include filename="$(find kwr75_ft_sensor)/urdf/kwr75_ft_sensor.gazebo.xacro"/>
+    <xacro:kwr75_ft_sensor_gazebo
+        joint_name="ft_sensor_link_joint"
+        topic="/ft_sensor/wrench_raw"
+        update_rate="250.0"/>
+
+  The plugin is libgazebo_ros_ft_sensor.so from gazebo_plugins.  It measures
+  the wrench on the joint and publishes geometry_msgs/WrenchStamped on
+  <topic>.  The twist is reported in the child link frame (ft_sensor_link).
+
+  The joint must have <provideFeedback>true</provideFeedback>; this macro
+  adds it.  Fixed joints are supported by the plugin in Gazebo 9/11, but
+  verify the output after spawning the model.
+
+  This file is harmless for the real robot because <gazebo> tags are ignored
+  by the URDF parser outside Gazebo.  Do not include it in a non-Gazebo
+  description unless you want the plugin block present.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="kwr75_ft_sensor_gazebo"
+               params="joint_name:=ft_sensor_link_joint
+                       topic:=/ft_sensor/wrench_raw
+                       update_rate:=250.0
+                       noise:=0.0">
+    <gazebo reference="${joint_name}">
+      <provideFeedback>true</provideFeedback>
+      <!-- Gazebo 11 / sdformat 9: keep the fixed joint in the SDF so the
+           FT sensor plugin can find it.  Without this the joint is lumped
+           away and the plugin reports "jointName does not exist". -->
+      <preserveFixedJoint>true</preserveFixedJoint>
+    </gazebo>
+
+    <gazebo>
+      <plugin name="kwr75_ft_sensor_plugin"
+              filename="libgazebo_ros_ft_sensor.so">
+        <updateRate>${update_rate}</updateRate>
+        <topicName>${topic}</topicName>
+        <jointName>${joint_name}</jointName>
+        <gaussianNoise>${noise}</gaussianNoise>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+</robot>

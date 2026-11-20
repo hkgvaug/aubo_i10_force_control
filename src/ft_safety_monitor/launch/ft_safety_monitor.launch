@@ -1,0 +1,35 @@
+<launch>
+  <!-- Auxiliary force/torque safety monitor.
+       NOT a safety-rated function.  The real protection is the robot
+       emergency stop / safety PLC. -->
+
+  <arg name="wrench_topic" default="/ft_sensor/wrench_raw"/>
+  <arg name="rated_force_n" default="200.0"/>
+  <arg name="rated_torque_nm" default="8.0"/>
+  <arg name="startup_grace_period" default="2.0"/>
+  <arg name="watchdog_timeout" default="0.20"/>
+  <arg name="group_name" default="manipulator_i10"/>
+  <arg name="action_namespace" default="/aubo_i10_controller/follow_joint_trajectory"/>
+  <arg name="use_move_group_stop" default="true"/>
+  <arg name="use_action_cancel" default="true"/>
+  <arg name="use_driver_stop" default="true"/>
+  <arg name="use_cancel_trajectory" default="true"/>
+
+  <node name="ft_safety_monitor" pkg="ft_safety_monitor"
+        type="ft_safety_monitor.py" output="screen">
+    <rosparam command="load"
+              file="$(find ft_safety_monitor)/config/ft_safety.yaml"/>
+
+    <param name="wrench_topic" value="$(arg wrench_topic)"/>
+    <param name="rated_force_n" value="$(arg rated_force_n)"/>
+    <param name="rated_torque_nm" value="$(arg rated_torque_nm)"/>
+    <param name="startup_grace_period" value="$(arg startup_grace_period)"/>
+    <param name="watchdog_timeout" value="$(arg watchdog_timeout)"/>
+    <param name="group_name" value="$(arg group_name)"/>
+    <param name="action_namespace" value="$(arg action_namespace)"/>
+    <param name="use_move_group_stop" value="$(arg use_move_group_stop)"/>
+    <param name="use_action_cancel" value="$(arg use_action_cancel)"/>
+    <param name="use_driver_stop" value="$(arg use_driver_stop)"/>
+    <param name="use_cancel_trajectory" value="$(arg use_cancel_trajectory)"/>
+  </node>
+</launch>

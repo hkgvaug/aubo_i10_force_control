@@ -1,0 +1,26 @@
+<launch>
+  <!-- 最小验证用：AUBO-i10 MoveIt demo（fake execution）+ 适配层。
+       不需要 Gazebo，适合先验证 BIM → Pose → MoveIt 规划链路。 -->
+
+  <arg name="use_gui" default="false"/>
+
+  <include file="$(find aubo_i10_moveit_config)/launch/demo.launch">
+    <arg name="use_gui" value="$(arg use_gui)"/>
+  </include>
+
+  <!-- Fake safety monitor + fake wrench so the fail-closed interlock is
+       satisfied in the demo.  No robot, no driver. -->
+  <include file="$(find ft_safety_monitor)/launch/ft_safety_monitor.launch">
+    <arg name="wrench_topic" value="/ft_sensor/wrench_raw"/>
+    <arg name="startup_grace_period" value="1.0"/>
+    <arg name="use_move_group_stop" value="true"/>
+    <arg name="use_action_cancel" value="true"/>
+  </include>
+  <node name="fake_wrench" pkg="ft_safety_monitor"
+        type="publish_fake_wrench.py" output="screen">
+    <param name="rate" value="100.0"/>
+    <param name="duration" value="30.0"/>
+  </node>
+
+  <include file="$(find bim_aubo_adapter)/launch/bim_aubo_adapter.launch"/>
+</launch>

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>bim_aubo_adapter</name>
+  <version>0.1.0</version>
+  <description>
+    BIM2ROS → AUBO-i10 适配层。
+
+    职责边界：
+      - 上游只接收 BIM2ROS 的标准输出：/bim/components (std_msgs/String, JSON)
+      - 本包负责 BIM 坐标 → AUBO base_link 目标位姿
+      - 通过标准 /bim/target_pose (geometry_msgs/PoseStamped) 交给 MoveIt 执行
+      - 不修改 BIM2ROS 的数据转换逻辑，也不包含任何真实机器人驱动
+  </description>
+
+  <maintainer email="user@example.com">bimros</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>moveit_commander</exec_depend>
+  <exec_depend>moveit_msgs</exec_depend>
+  <exec_depend>aubo_i10_moveit_config</exec_depend>
+  <exec_depend>ft_safety_monitor</exec_depend>
+</package>

@@ -1,0 +1,75 @@
+# =============================================================================
+# BIM2ROS → AUBO-i10 适配层参数
+#
+# 只在这里调整“BIM 坐标 → AUBO 工作空间”的映射，不改 BIM2ROS 内部逻辑。
+# 所有长度单位：米；姿态四元数顺序：x y z w。
+# =============================================================================
+
+bim_target_bridge:
+  # ── 标准接口 ────────────────────────────────────────────────────────────
+  components_topic: /bim/components      # 上游 BIM2ROS 发布（std_msgs/String JSON）
+  target_pose_topic: /bim/target_pose    # 本节点输出（geometry_msgs/PoseStamped）
+  target_info_topic: /bim/target_info    # 组件元数据（std_msgs/String JSON）
+  marker_topic: /bim/marker              # RViz 目标点
+  state_topic: /bim/adapter_state        # std_msgs/String
+
+  # ── 坐标系 ──────────────────────────────────────────────────────────────
+  # AUBO i10 URDF 的基座坐标系。MoveIt 会自动转换到 planning frame。
+  base_frame: base_link
+
+  # ── BIM 世界坐标范围（来自 garden.py / components_preview.json）──────────
+  # 注意：原始 motion_planner.py 写的是 X(0~30)，但样例数据最大 X≈48.7。
+  # 这里按实际模型范围配置，仅影响适配层，不修改原规划器。
+  bim_x_range: [0.0, 50.0]
+  bim_y_range: [0.0, 15.0]
+  bim_z_range: [0.0, 6.0]
+
+  # ── AUBO i10 安全工作空间（base_link 坐标系）────────────────────────────
+  # 取 AUBO i10 约 1.3 m 臂展内的保守体积，避免一开始就贴到奇异/边界。
+  robot_x_range: [0.40, 0.85]
+  robot_y_range: [-0.35, 0.35]
+  robot_z_range: [0.25, 0.80]
+
+  # 在映射结果上追加固定偏移（调试/标定用）
+  target_offset_xyz: [0.0, 0.0, 0.0]
+
+  # 末端姿态。空列表 = 只约束位置，姿态由 MoveIt 自行选择（第一阶段推荐）。
+  # 例如要固定为“工具朝下”：orientation_xyzw: [0.0, 1.0, 0.0, 0.0]
+  orientation_xyzw: []
+
+  # 连续重复目标抑制
+  dedup_distance: 0.005
+
+  queue_size: 100
+
+
+moveit_pose_executor:
+  target_pose_topic: /bim/target_pose
+  target_info_topic: /bim/target_info
+  result_topic: /bim/execution_result    # std_msgs/String JSON
+  state_topic: /bim/executor_state       # std_msgs/String
+  target_coords_topic: /bim_target_coords  # Float32MultiArray，兼容原反馈节点
+
+  # ── AUBO i10 MoveIt 配置（来自 aubo_i10.srdf）───────────────────────────
+  group_name: manipulator_i10
+  end_effector_link: wrist3_Link
+  base_frame: base_link
+
+  # ── 规划/执行参数 ───────────────────────────────────────────────────────
+  planning_time: 5.0
+  num_planning_attempts: 10
+  velocity_scaling: 0.3
+  acceleration_scaling: 0.3
+  retry_count: 2
+
+  # true 时使用 PoseStamped 中的 orientation（若四元数非零）
+  use_orientation: false
+
+  # ── 力安全联锁（fail-closed）───────────────────────────────────────────
+  # 只有 /ft_safety/state 为 NORMAL 且未超时才执行；
+  # 没收到状态、状态过期、WARNING、FAULT 都拒绝。
+  require_safety_state: true
+  safety_state_topic: /ft_safety/state
+  safety_state_timeout: 1.0
+
+  queue_size: 100

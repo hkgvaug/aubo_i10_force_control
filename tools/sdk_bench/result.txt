@@ -1,0 +1,17 @@
+login send=0 recv=0  (913.2 ms)
+enterTcp2CanbusMode = 10023  (24.5 ms)
+already in canbus mode, leave+re-enter
+re-enter = 0
+getCurrentWaypoint (67.9 ms) q_deg = 147.94 71.44 142.91 168.70 111.83 34.37
+
+[A] push alone                     n=300  min=   3.18  p50= 146.88  p90= 337.73  p99=1041.17  max=1500.33  mean= 179.36 ms
+[B] push + diag@5Hz                n=300  min=  10.90  p50= 173.94  p90= 387.53  p99= 910.56  max= 968.46  mean= 223.00 ms
+    diag call                      n=161  min=  14.49  p50= 149.66  p90= 458.88  p99= 790.28  max=1002.03  mean= 220.80 ms
+[C] push + IO@2Hz                  n=300  min=   7.60  p50= 176.69  p90= 396.72  p99=1082.07  max=1232.17  mean= 219.54 ms
+    boardIO call                   n= 58  min= 108.38  p50= 923.80  p90=1282.03  p99=2225.40  max=2225.40  mean= 921.04 ms
+[D] push + diag@50Hz               n=300  min=   4.46  p50= 191.15  p90= 373.59  p99= 755.30  max=1500.22  mean= 225.55 ms
+    diag call                      n=270  min=   8.93  p50= 168.13  p90= 477.95  p99= 880.01  max=1492.70  mean= 233.26 ms
+
+done (left canbus mode, logged out)
+*** stack smashing detected ***: terminated
+timeout: the monitored command dumped core

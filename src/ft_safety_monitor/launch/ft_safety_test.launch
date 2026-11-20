@@ -1,0 +1,58 @@
+<launch>
+  <!-- Headless fake-execution test.  No robot, no driver, no Gazebo.
+
+       It starts:
+         * MoveIt move_group with the fake controller manager
+         * joint_state_publisher / robot_state_publisher
+         * a mock FollowJointTrajectory action server (to observe cancels)
+         * a fake KWR75 WrenchStamped publisher
+         * the FT safety monitor
+
+       Run the checks in test/run_fake_test.sh, or drive it manually:
+         rostopic pub -1 /fake_wrench/command std_msgs/String "data: 'stop_force'"
+         rostopic echo /ft_safety/state
+  -->
+
+  <include file="$(find aubo_i10_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher"
+        type="joint_state_publisher">
+    <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+  </node>
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher"
+        type="robot_state_publisher"/>
+
+  <include file="$(find aubo_i10_moveit_config)/launch/move_group.launch">
+    <arg name="allow_trajectory_execution" value="true"/>
+    <arg name="fake_execution" value="true"/>
+    <arg name="info" value="false"/>
+  </include>
+
+  <node name="mock_trajectory_action_server" pkg="ft_safety_monitor"
+        type="mock_trajectory_action_server.py" output="screen">
+    <!-- The test greps this flushed file; roslaunch's own log may be
+         block-buffered when redirected to a file. -->
+    <param name="event_file" value="/tmp/ft_safety_mock_events.txt"/>
+  </node>
+
+  <node name="fake_wrench" pkg="ft_safety_monitor"
+        type="publish_fake_wrench.py" output="screen">
+    <!-- 100 Hz is enough for the test and is less sensitive to VM CPU
+         starvation while move_group is loading.  The 10 s duration keeps
+         a warn/stop mode active long enough for the slow state helper. -->
+    <param name="rate" value="100.0"/>
+    <param name="duration" value="30.0"/>
+  </node>
+
+  <include file="$(find ft_safety_monitor)/launch/ft_safety_monitor.launch">
+    <arg name="startup_grace_period" value="5.0"/>
+    <arg name="watchdog_timeout" value="2.0"/>
+    <arg name="use_move_group_stop" value="true"/>
+    <arg name="use_action_cancel" value="true"/>
+    <arg name="use_driver_stop" value="true"/>
+    <arg name="use_cancel_trajectory" value="true"/>
+  </include>
+</launch>

@@ -1,0 +1,49 @@
+# 6-DoF Cartesian Admittance & Force Control Parameters
+# Target Robot: AUBO-i10 (IP: 192.168.100.11)
+# Sensor: Kunwei KWR75B 6-Axis F/T Sensor
+
+# Control loop rates
+loop_rate_hz: 100.0             # 100 Hz real-time servo cycle
+robot_ip: "192.168.100.11"
+mock_hardware: false            # true for simulation without real robot
+
+# Velocity and Displacement safety limits
+max_linear_velocity: 0.08       # 80 mm/s max Cartesian tracking speed
+max_angular_velocity: 0.35      # ~20 deg/s max Cartesian rotation speed
+max_step_displacement: 0.002    # 2.0 mm maximum displacement per 10ms cycle
+
+# Force/Torque thresholds for immediate safety abort
+max_force_cutoff: 100.0         # 100 N (rated 200 N)
+max_torque_cutoff: 5.0          # 5.0 Nm (rated 8.0 Nm)
+
+# Target Contact Force (for active force pressing/contouring, default 0.0)
+target_force_z: 0.0             # Desired normal contact force (N)
+
+# Admittance Dynamics Parameters
+# Virtual Mass M: [Mx, My, Mz (kg), Mrx, Mry, Mrz (kg*m^2)]
+admittance_mass: [5.0, 5.0, 5.0, 0.1, 0.1, 0.1]
+
+# Virtual Stiffness K: [Kx, Ky, Kz (N/m), Krx, Kry, Krz (Nm/rad)]
+# Lower stiffness -> softer, more compliant response to touch
+admittance_stiffness: [250.0, 250.0, 250.0, 15.0, 15.0, 15.0]
+
+# Critical Damping Ratio zeta: 1.0 = critically damped (no overshoot/oscillation)
+admittance_damping_ratio: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+
+# Deadband noise rejection thresholds
+stiction_force: 1.5             # 1.5 N deadband
+stiction_torque: 0.08           # 0.08 Nm deadband
+
+# Tool Payload and Gravity Compensation
+tool_mass: 0.95                 # kg (KWR75 sensor adapter plate + gripper)
+tool_cog: [0.0, 0.0, 0.045]     # meters: CoG offset along Z from sensor flange
+
+# Gravity compensation must stay OFF while the node reads /ft_sensor/wrench,
+# because that topic is already tared by /ft_sensor/tare (the tool weight is
+# removed there).  Set true only if you point the node at the untared raw topic.
+enable_gravity_comp: false
+
+# Publishing the 100 Hz stream to moveItController_cmd (buffered trajectory
+# queue, drains at ~7.5 points/s) causes unbounded backlog.  Leave false; the
+# driver's /aubo_driver/servo_joint_cmd path is latest-wins.
+publish_moveit_points: false

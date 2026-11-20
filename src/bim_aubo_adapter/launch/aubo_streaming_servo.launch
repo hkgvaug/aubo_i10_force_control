@@ -1,0 +1,17 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="control_rate_hz" default="10.0"/>
+  <arg name="stream_rate_hz" default="100.0"/>
+  <arg name="max_force_cutoff" default="180.0"/>
+  <arg name="robot_ip" default="192.168.100.11"/>
+  <arg name="mock_hardware" default="true"/>
+
+  <!-- Start Aubo Streaming Servo & L1 Controller Node -->
+  <node name="aubo_canbus_stream_node" pkg="bim_aubo_adapter" type="aubo_canbus_stream_node.py" output="screen">
+    <param name="control_rate_hz" value="$(arg control_rate_hz)"/>
+    <param name="stream_rate_hz" value="$(arg stream_rate_hz)"/>
+    <param name="max_force_cutoff" value="$(arg max_force_cutoff)"/>
+    <param name="robot_ip" value="$(arg robot_ip)"/>
+    <param name="mock_hardware" value="$(arg mock_hardware)"/>
+  </node>
+</launch>

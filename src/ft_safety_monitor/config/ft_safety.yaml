@@ -1,0 +1,59 @@
+# KWR75 force/torque safety monitor.
+#
+# This is an auxiliary software protection layer, NOT a safety-rated
+# function. The real protection is the robot emergency stop / safety PLC.
+
+# Raw (un-tared) wrench.  Never point this at /ft_sensor/wrench: the tared
+# value has the static bias removed and would under-report the real load.
+wrench_topic: /ft_sensor/wrench_raw
+state_topic: /ft_safety/state
+reset_service: /ft_safety/reset
+expected_frame_id: ft_sensor_link
+
+# Rated load of the sensor. KWR75B: 200 N / 8 Nm.
+rated_force_n: 200.0
+rated_torque_nm: 8.0
+
+# Thresholds as a fraction of the rated load. Force and torque are
+# evaluated independently; the worst axis wins.
+warn_ratio_force: 0.50
+warn_ratio_torque: 0.50
+stop_ratio_force: 0.75
+stop_ratio_torque: 0.75
+
+# Consecutive frames above a threshold before a transition. At the
+# default 250 Hz publish rate, 5 frames is 20 ms.
+debounce_frames: 5
+# Frames below the warning threshold before WARNING -> NORMAL.
+warn_clear_frames: 25
+
+# No WrenchStamped message for this long -> FAULT.
+watchdog_timeout: 0.20
+
+# Do not watchdog-fault during the first seconds after startup.
+startup_grace_period: 2.0
+
+# Collect this many raw frames at startup and log the static baseline.
+# If the baseline already exceeds warn/stop, the log says it is tool weight /
+# fixture preload, not a sensor or contact fault.  The state machine starts
+# after the baseline is collected.  Set 0 to disable.
+baseline_frames: 50
+
+publish_rate: 20.0
+
+# Stop actions. The driver-level "stop" event is the only path that
+# clears the aubo_driver queue. MoveGroupCommander.stop() publishes the
+# same event; the action cancel only aborts the action goal.
+use_driver_stop: true
+use_cancel_trajectory: true
+use_move_group_stop: true
+use_action_cancel: true
+
+group_name: manipulator_i10
+action_namespace: /aubo_i10_controller/follow_joint_trajectory
+trajectory_event_topic: /trajectory_execution_event
+cancel_trajectory_topic: /aubo_driver/cancel_trajectory
+
+stop_repeat_count: 3
+stop_repeat_period: 0.05
+action_server_timeout: 1.0

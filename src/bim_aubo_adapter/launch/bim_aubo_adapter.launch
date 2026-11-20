@@ -1,0 +1,18 @@
+<launch>
+  <!-- BIM2ROS → AUBO-i10 适配层（只启动两个 Python 节点）
+       前置条件：MoveIt 的 move_group 已经启动（demo 或 Gazebo 均可）。 -->
+
+  <rosparam command="load" file="$(find bim_aubo_adapter)/config/bim_aubo.yaml"/>
+
+  <node name="bim_target_bridge"
+        pkg="bim_aubo_adapter"
+        type="bim_target_bridge.py"
+        output="screen"
+        respawn="false"/>
+
+  <node name="moveit_pose_executor"
+        pkg="bim_aubo_adapter"
+        type="moveit_pose_executor.py"
+        output="screen"
+        respawn="false"/>
+</launch>
